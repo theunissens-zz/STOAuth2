@@ -12,6 +12,9 @@ import java.util.Properties;
  */
 public class OAuth2Db {
 
+    private String user = "postgres";
+    private String password = "mjollnir24";
+
     public OAuth2Db() {
 
     }
@@ -20,7 +23,7 @@ public class OAuth2Db {
         try {
             Connection conn = getConnection();
             Statement stm = conn.createStatement();
-            String sql = String.format("INSERT INTO \"client\"(\"clientid\", \"clientsecret\") VALUES(\'%s\', \'%s\')", client.getClientId(), client.getClientSecret());
+            String sql = String.format("INSERT INTO \"client\"(\"clientid\", \"clientsecret\") VALUES(\'%s\', \'%s\')", client.getClientName(), client.getClientSecret());
             stm.executeUpdate(sql);
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -45,12 +48,43 @@ public class OAuth2Db {
 
     private Connection getConnection() throws SQLException {
         Properties props = new Properties();
-        props.setProperty("user", "imqs");
-        props.setProperty("password", "1mq5p@55w0rd");
-        return DriverManager.getConnection(getPostgresConnectionJdbcString(), props);
+        props.setProperty("user", user);
+        props.setProperty("password", password);
+        try {
+            Connection connection = DriverManager.getConnection(getPostgresConnectionJdbcString(true), props);
+            return connection;
+        } catch (SQLException ex) {
+            // maybe the db doesnt exist, and now we create it!
+            createClientTable();
+            Connection connection = DriverManager.getConnection(getPostgresConnectionJdbcString(true), props);
+            return connection;
+        }
     }
 
-    public String getPostgresConnectionJdbcString() {
-        return String.format("jdbc:postgresql://%s:%s/%s", "localhost", "5432", "oauth2");
+    public String getPostgresConnectionJdbcString(boolean withDb) {
+        if (withDb)
+            return String.format("jdbc:postgresql://%s:%s/%s", "localhost", "5432", "oauth2");
+        else
+            return String.format("jdbc:postgresql://%s:%s/", "localhost", "5432");
+    }
+
+    private void createClientTable()  {
+        try {
+            Properties props = new Properties();
+            props.setProperty("user", user);
+            props.setProperty("password", password);
+            //Class.forName("org.postgresql.Driver");
+            Connection connection = DriverManager.getConnection(getPostgresConnectionJdbcString(false), props);
+            Statement stm = connection.createStatement();
+            stm.execute("CREATE DATABASE oauth2");
+            connection = DriverManager.getConnection(getPostgresConnectionJdbcString(true), props);
+            stm = connection.createStatement();
+            stm.execute("CREATE TABLE client (id serial primary key, clientid varchar(256), clientsecret varchar(256));");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+//        CREATE DATABASE client;
+//\c testdatabase
+//        CREATE TABLE client (id serial primary key, clientid varchar(256), clientsecret varchar(256));
     }
 }

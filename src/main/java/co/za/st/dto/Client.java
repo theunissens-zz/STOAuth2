@@ -9,10 +9,14 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Client {
-    public Client(String clientId, String clientSecret) {
-        this.clientId = clientId;
+    public Client(String clientName, String clientSecret) {
+        this.clientName = clientName;
         this.clientSecret = clientSecret;
     }
-    private String clientId;
+    private String type;
+    private String clientName;
+    private String clientUrl;
+    private String clientDescription;
+    private String client;
     private String clientSecret;
 }
