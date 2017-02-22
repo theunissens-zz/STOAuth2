@@ -23,22 +23,36 @@ public class OAuth2Db {
         try {
             Connection conn = getConnection();
             Statement stm = conn.createStatement();
-            String sql = String.format("INSERT INTO \"client\"(\"clientid\", \"clientsecret\") VALUES(\'%s\', \'%s\')", client.getClientName(), client.getClientSecret());
+            String sql = String.format("INSERT INTO \"client\"(\"name\", \"clientid\", \"secret\", \"type\", \"url\", \"redirecturl\", \"description\") VALUES(\'%s\', \'%s\', \'%s\', \'%s\', \'%s\', \'%s\', \'%s\')", client.getName(), client.getClientId(), client.getSecret(), client.getType(), client.getUrl(), client.getRedirectUrl(), client.getDescription());
             stm.executeUpdate(sql);
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
     }
 
-    public Client retrieveClient() {
+    public Client retrieveClient(String clientId) {
         try {
             Connection conn = getConnection();
             Statement stm = conn.createStatement();
-            ResultSet rs = stm.executeQuery("SELECT * FROM client");
+            ResultSet rs = stm.executeQuery(String.format("SELECT * FROM client WHERE clientid = \"%s\"", clientId));
             if(rs.next()) {
-                String clientid = rs.getString("clientid");
-                String clientsecret = rs.getString("clientsecret");
-                return new Client(clientid, clientsecret);
+                String name = rs.getString("name");
+                String secret = rs.getString("secret");
+                String type = rs.getString("type");
+                String url = rs.getString("url");
+                String redirectUrl = rs.getString("redirecturl");
+                String description = rs.getString("description");
+
+                Client client = new Client();
+                client.setName(name);
+                client.setClientId(clientId);
+                client.setSecret(secret);
+                client.setType(type);
+                client.setUrl(url);
+                client.setRedirectUrl(redirectUrl);
+                client.setDescription(description);
+
+                return client;
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -73,18 +87,14 @@ public class OAuth2Db {
             Properties props = new Properties();
             props.setProperty("user", user);
             props.setProperty("password", password);
-            //Class.forName("org.postgresql.Driver");
             Connection connection = DriverManager.getConnection(getPostgresConnectionJdbcString(false), props);
             Statement stm = connection.createStatement();
             stm.execute("CREATE DATABASE oauth2");
             connection = DriverManager.getConnection(getPostgresConnectionJdbcString(true), props);
             stm = connection.createStatement();
-            stm.execute("CREATE TABLE client (id serial primary key, clientid varchar(256), clientsecret varchar(256));");
+            stm.execute("CREATE TABLE client (id serial primary key, name varchar(64), clientid varchar(256), secret varchar(256), type varchar(64), url varchar(256), redirecturl varchar(256), description text);");
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-//        CREATE DATABASE client;
-//\c testdatabase
-//        CREATE TABLE client (id serial primary key, clientid varchar(256), clientsecret varchar(256));
     }
 }

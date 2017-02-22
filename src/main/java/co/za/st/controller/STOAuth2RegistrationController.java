@@ -25,38 +25,40 @@ public class STOAuth2RegistrationController {
     @ResponseBody
     public OAuthResponse showIndex(HttpServletRequest request) throws OAuthSystemException {
         try {
-            System.out.println("asdsad1");
             OAuthServerRegistrationRequest oauthRegRequest = new OAuthServerRegistrationRequest(new JSONHttpServletRequestWrapper(request));
-            System.out.println("asdsad2");
             String type = oauthRegRequest.getType();
             oauthRegRequest.discover();
-            String clientName = oauthRegRequest.getClientName();
-            String clientUrl = oauthRegRequest.getClientUrl();
-            String clientDesc = oauthRegRequest.getClientDescription();
+            String name = oauthRegRequest.getClientName();
+            String url = oauthRegRequest.getClientUrl();
+            String description = oauthRegRequest.getClientDescription();
             String redirectUrl = oauthRegRequest.getRedirectURI();
 
-            String clientId = generateClientId();
-            String clientSecret = generateClientSecret();
             long issuedAt = System.currentTimeMillis();
             // Expires in one day
             long expires = issuedAt + 86400000;
             Date date = new Date(System.currentTimeMillis());
 
-//            OAuth2Db oAuth2Db = new OAuth2Db();
-//            oAuth2Db.insertClient(new Client(clientId, clientSecret));
+            String clientId = generateClientId();
+            String secret = generateClientSecret();
 
-            System.out.println("asdsad3");
-            long exp = 987654321;
+            Client client = new Client();
+            client.setName(name);
+            client.setClientId(clientId);
+            client.setSecret(secret);
+            client.setType(type);
+            client.setUrl(url);
+            client.setDescription(description);
+
+            OAuth2Db oAuth2Db = new OAuth2Db();
+            oAuth2Db.insertClient(client);
+
             OAuthResponse response = OAuthServerRegistrationResponse
                     .status(HttpServletResponse.SC_OK)
                     .setClientId(clientId)
-                    .setClientSecret("someclientsecret")
-                    .setIssuedAt("0123456789")
-                    .setExpiresIn(exp)
+                    .setClientSecret(secret)
+                    .setIssuedAt(date.toString())
+                    .setExpiresIn(expires)
                     .buildJSONMessage();
-            System.out.println("asdsad4");
-//            return OAuthServerRegistrationResponse.status(200).buildJSONMessage();
-//            OAuthServerRegistrationResponse.status(200).
             return response;
         } catch (OAuthProblemException ex) {
             ex.printStackTrace();
