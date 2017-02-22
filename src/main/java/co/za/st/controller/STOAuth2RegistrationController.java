@@ -47,6 +47,7 @@ public class STOAuth2RegistrationController {
             client.setSecret(secret);
             client.setType(type);
             client.setUrl(url);
+            client.setRedirectUrl(redirectUrl);
             client.setDescription(description);
 
             OAuth2Db oAuth2Db = new OAuth2Db();
