@@ -1,19 +1,10 @@
-import co.za.st.controller.STOAuth2RegistrationController;
-import co.za.st.controller.STOAuth2TokenController;
-import co.za.st.db.ClientDbMock;
 import co.za.st.springconfig.STWebMvcConfig;
-import co.za.st.client.Client;
-import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.json.JSONObject;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -21,10 +12,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
-
-import java.io.FileNotFoundException;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -34,9 +22,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ActiveProfiles(profiles = "dev")
+@ActiveProfiles(profiles = "test")
 @ContextConfiguration(classes = {STWebMvcConfig.class})
-public class OAuth2Test {
+public class STOAuth2TestIntegration {
 
     @Autowired
     private WebApplicationContext wac;
@@ -47,54 +35,20 @@ public class OAuth2Test {
     public void setup() {
         mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
 
-        try {
-            String createDbScript = ResourceUtils.getFile("classpath:scripts/create-oauth2-db.sql").toURI().toString();
-            String createTableScript = ResourceUtils.getFile("classpath:scripts/create-oauth2-db.sql").toURI().toString();
-
-            EmbeddedDatabase db = new EmbeddedDatabaseBuilder()
-                    .setType(EmbeddedDatabaseType.HSQL)
-                    .addScript(createDbScript)
-                    .addScript(createTableScript)
-                    .build();
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
-        }
+//        try {
+//            String createDbScript = ResourceUtils.getFile("classpath:scripts/create-oauth2-db.sql").toURI().toString();
+//            String createTableScript = ResourceUtils.getFile("classpath:scripts/create-oauth2-db.sql").toURI().toString();
+//
+//            EmbeddedDatabase db = new EmbeddedDatabaseBuilder()
+//                    .setType(EmbeddedDatabaseType.HSQL)
+//                    .addScript(createDbScript)
+//                    .addScript(createTableScript)
+//                    .build();
+//        } catch (FileNotFoundException ex) {
+//            ex.printStackTrace();
+//        }
     }
 
-    @Test
-    public void testClientPersistExpectClientRetrievedEqualToClientPersisted() throws OAuthSystemException {
-        ClientDbMock db = new ClientDbMock();
-
-        String name = "name";
-        String clientId = "clientid";
-        String secret = "secret";
-        String type = "type";
-        String url = "url";
-        String redirectUrl = "redirectUrl";
-        String description = "description";
-
-        Client client = new Client();
-        client.setName(name);
-        client.setClientId(clientId);
-        client.setSecret(secret);
-        client.setType(type);
-        client.setUrl(url);
-        client.setRedirectUrl(redirectUrl);
-        client.setDescription(description);
-
-        db.insertClient(client);
-
-        Client retrievedClient = db.getClient(clientId, secret);
-
-        Assert.assertEquals(name, retrievedClient.getName());
-        Assert.assertEquals(clientId, retrievedClient.getClientId());
-        Assert.assertEquals(secret, retrievedClient.getSecret());
-        Assert.assertEquals(type, retrievedClient.getType());
-        Assert.assertEquals(url, retrievedClient.getUrl());
-        Assert.assertEquals(redirectUrl, retrievedClient.getRedirectUrl());
-        Assert.assertEquals(description, retrievedClient.getDescription());
-
-    }
 
     @Test
     public void testRegisterAndGetTokenExpectOk()  throws Exception{

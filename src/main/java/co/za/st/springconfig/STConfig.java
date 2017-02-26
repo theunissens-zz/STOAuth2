@@ -9,5 +9,4 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ComponentScan(basePackages = "co.za.st")
 public class STConfig {
-
 }

@@ -1,9 +1,8 @@
 package co.za.st.db;
 
-import co.za.st.client.Client;
-import co.za.st.client.iClient;
+import co.za.st.dto.Client;
+import co.za.st.dto.Token;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
-import org.springframework.context.annotation.Profile;
 
 import java.sql.*;
 import java.util.Properties;
@@ -12,24 +11,23 @@ import java.util.Properties;
  * Created by StevenT on 2017/02/21.
  * We are just going to use this shitty DB implementation to persist and get data for now
  */
-public class ClientDb implements iClient {
+public class AuthDb implements iAuthDb {
 
     private String user = "postgres";
     private String password = "mjollnir24";
 
-    public ClientDb() {
+    public AuthDb() {
 
     }
 
-    public void insertClient(Client client) throws OAuthSystemException {
+    public void insertClient(Client client) {
         try {
             Connection conn = getConnection();
             Statement stm = conn.createStatement();
-            String sql = String.format("INSERT INTO \"client\"(\"name\", \"clientid\", \"secret\", \"type\", \"url\", \"redirecturl\", \"description\") VALUES(\'%s\', \'%s\', \'%s\', \'%s\', \'%s\', \'%s\', \'%s\')", client.getName(), client.getClientId(), client.getSecret(), client.getType(), client.getUrl(), client.getRedirectUrl(), client.getDescription());
+            String sql = String.format("INSERT INTO \"handler\"(\"name\", \"clientid\", \"secret\", \"type\", \"url\", \"redirecturl\", \"description\") VALUES(\'%s\', \'%s\', \'%s\', \'%s\', \'%s\', \'%s\', \'%s\')", client.getName(), client.getClientId(), client.getSecret(), client.getType(), client.getUrl(), client.getRedirectUrl(), client.getDescription());
             stm.executeUpdate(sql);
         } catch (SQLException ex) {
             ex.printStackTrace();
-            throw new OAuthSystemException(ex);
         }
     }
 
@@ -37,7 +35,8 @@ public class ClientDb implements iClient {
         try {
             Connection conn = getConnection();
             Statement stm = conn.createStatement();
-            String sql = String.format("SELECT * FROM client WHERE clientid = \'%s\' AND secret = \'%s\'", clientId, secret);
+            String sql = String.format("SELECT * FROM handler WHERE clientid = \'%s\' AND secret = \'%s\'", clientId, secret);
+
             ResultSet rs = stm.executeQuery(sql);
             if(rs.next()) {
                 String name = rs.getString("name");
@@ -61,6 +60,30 @@ public class ClientDb implements iClient {
             ex.printStackTrace();
         }
         return null;
+    }
+
+    public void insertToken(Client client, Token token) {
+
+    }
+
+    public Token getToken(String clientId) {
+        return null;
+    }
+
+    public boolean clientExists(String clientId) {
+        try {
+            Connection conn = getConnection();
+            Statement stm = conn.createStatement();
+            String sql = String.format("SELECT * FROM handler WHERE clientid = \'%s\'", clientId);
+
+            ResultSet rs = stm.executeQuery(sql);
+            if(rs.next()) {
+                return true;
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return false;
     }
 
     private Connection getConnection() throws SQLException {

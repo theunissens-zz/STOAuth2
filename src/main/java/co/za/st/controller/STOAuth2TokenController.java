@@ -1,8 +1,11 @@
 package co.za.st.controller;
 
-import co.za.st.client.iClient;
-import co.za.st.db.ClientDb;
-import co.za.st.client.Client;
+import co.za.st.dto.Client;
+import co.za.st.dto.Token;
+import co.za.st.handler.TokenHandler;
+import co.za.st.handler.iClientHandler;
+import co.za.st.exceptions.ClientNotFoundException;
+import co.za.st.handler.iTokenHandler;
 import org.apache.oltu.oauth2.as.request.OAuthTokenRequest;
 import org.apache.oltu.oauth2.as.response.OAuthASResponse;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
@@ -27,11 +30,14 @@ import java.util.UUID;
 @Controller
 public class STOAuth2TokenController {
 
-    // For now, we will accept the clientid and client secret in url0 as params, but we really
+    // For now, we will accept the clientid and handler secret in url0 as params, but we really
     // want to base64 encode the clientid and secret like this (clientid:clientsecret) in the future
 
     @Autowired
-    private iClient clientStorage;
+    private iClientHandler clientHandler;
+
+    @Autowired
+    private iTokenHandler tokenHandler;
 
     @RequestMapping(value = "/token", consumes = "application/x-www-form-urlencoded", produces = "application/json", method = RequestMethod.POST)
     @ResponseBody
@@ -42,17 +48,19 @@ public class STOAuth2TokenController {
                 String clientid = tokenRequest.getClientId();
                 String secret = tokenRequest.getClientSecret();
 
-                Client client = clientStorage.getClient(clientid, secret);
+                try {
+                    Client client = clientHandler.getClient(clientid, secret);
 
-                if (client != null) {
+                    Token token = tokenHandler.generateToken(client);
+
                     OAuthResponse response = OAuthASResponse
                             .tokenResponse(HttpServletResponse.SC_OK)
-                            .setAccessToken(generateToken())
-                            .setExpiresIn("3600")
+                            .setAccessToken(token.getAccessToken())
+                            .setExpiresIn(token.getExpires())
                             .buildJSONMessage();
                     return ResponseEntity.ok(response.getBody());
-                } else {
-                    return new ResponseEntity("Client not found", HttpStatus.BAD_REQUEST);
+                } catch (ClientNotFoundException ex) {
+                    return new ResponseEntity(ex.getMessage(), HttpStatus.BAD_REQUEST);
                 }
             } else {
                 return new ResponseEntity("Grant type not supported yet", HttpStatus.BAD_REQUEST);
@@ -65,13 +73,4 @@ public class STOAuth2TokenController {
             return new ResponseEntity("Something went wrong with us", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-    public String generateToken() {
-        return UUID.randomUUID().toString();
-    }
-
-    public void setClientStorage(iClient clientStorage) {
-        this.clientStorage = clientStorage;
-    }
-
 }

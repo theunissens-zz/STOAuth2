@@ -1,8 +1,5 @@
 package co.za.st;
 
-import co.za.st.client.iClient;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
@@ -12,11 +9,14 @@ import org.springframework.web.servlet.DispatcherServlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
+import java.util.logging.Logger;
 
 /**
  * Created by StevenT on 2017/02/21.
  */
 public class AppInitializer implements WebApplicationInitializer{
+
+    public static Logger log = Logger.getLogger(AppInitializer.class.getName());
 
     public void onStartup(ServletContext servletContext) throws ServletException {
         WebApplicationContext context = getContext();

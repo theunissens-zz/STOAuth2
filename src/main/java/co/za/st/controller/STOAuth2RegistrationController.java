@@ -1,7 +1,8 @@
 package co.za.st.controller;
 
-import co.za.st.client.iClient;
-import co.za.st.client.Client;
+import co.za.st.handler.iClientHandler;
+import co.za.st.exceptions.ClientExistsException;
+import co.za.st.dto.Client;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.OAuthResponse;
@@ -26,7 +27,7 @@ import java.util.UUID;
 public class STOAuth2RegistrationController {
 
     @Autowired
-    private iClient clientStorage;
+    private iClientHandler clientHandler;
 
     @RequestMapping(consumes = "application/json", produces = "application/json", method = RequestMethod.POST)
     @ResponseBody
@@ -45,24 +46,25 @@ public class STOAuth2RegistrationController {
             long expires = issuedAt + 86400000;
             Date date = new Date(System.currentTimeMillis());
 
-            String clientId = generateClientId();
-            String secret = generateClientSecret();
-
             Client client = new Client();
             client.setName(name);
-            client.setClientId(clientId);
-            client.setSecret(secret);
             client.setType(type);
             client.setUrl(url);
             client.setRedirectUrl(redirectUrl);
             client.setDescription(description);
 
-            this.clientStorage.insertClient(client);
+            Client generatedClient;
+
+            try {
+                generatedClient = this.clientHandler.saveClient(client);
+            } catch (ClientExistsException ex) {
+                return new ResponseEntity(ex.getMessage(), HttpStatus.BAD_REQUEST);
+            }
 
             OAuthResponse response = OAuthServerRegistrationResponse
                     .status(HttpServletResponse.SC_OK)
-                    .setClientId(clientId)
-                    .setClientSecret(secret)
+                    .setClientId(generatedClient.getClientId())
+                    .setClientSecret(generatedClient.getSecret())
                     .setIssuedAt(date.toString())
                     .setExpiresIn(expires)
                     .buildJSONMessage();
@@ -74,17 +76,5 @@ public class STOAuth2RegistrationController {
             ex.printStackTrace();
             return new ResponseEntity("Something went wrong with us", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
-
-    public String generateClientId() {
-        return UUID.randomUUID().toString();
-    }
-
-    public String generateClientSecret() {
-        return UUID.randomUUID().toString();
-    }
-
-    public void setClientStorage(iClient clientStorage) {
-        this.clientStorage = clientStorage;
     }
 }
