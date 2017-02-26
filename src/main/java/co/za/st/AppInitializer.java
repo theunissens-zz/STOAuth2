@@ -1,5 +1,8 @@
 package co.za.st;
 
+import co.za.st.client.iClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
@@ -25,7 +28,8 @@ public class AppInitializer implements WebApplicationInitializer{
 
     public AnnotationConfigWebApplicationContext getContext() {
         AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-        context.setConfigLocation("co.za.st.config");
+        context.setConfigLocation("co.za.st.springconfig");
+        context.getEnvironment().setActiveProfiles("production");
         return context;
     }
 }

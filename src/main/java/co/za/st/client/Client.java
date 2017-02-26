@@ -1,4 +1,4 @@
-package co.za.st.dto;
+package co.za.st.client;
 
 import lombok.Getter;
 import lombok.Setter;

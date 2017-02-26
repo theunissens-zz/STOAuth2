@@ -1,7 +1,9 @@
 package co.za.st.db;
 
-import co.za.st.dto.Client;
-import org.postgresql.jdbc4.Jdbc4Connection;
+import co.za.st.client.Client;
+import co.za.st.client.iClient;
+import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
+import org.springframework.context.annotation.Profile;
 
 import java.sql.*;
 import java.util.Properties;
@@ -10,16 +12,16 @@ import java.util.Properties;
  * Created by StevenT on 2017/02/21.
  * We are just going to use this shitty DB implementation to persist and get data for now
  */
-public class OAuth2Db {
+public class ClientDb implements iClient {
 
     private String user = "postgres";
     private String password = "mjollnir24";
 
-    public OAuth2Db() {
+    public ClientDb() {
 
     }
 
-    public void insertClient(Client client) {
+    public void insertClient(Client client) throws OAuthSystemException {
         try {
             Connection conn = getConnection();
             Statement stm = conn.createStatement();
@@ -27,17 +29,18 @@ public class OAuth2Db {
             stm.executeUpdate(sql);
         } catch (SQLException ex) {
             ex.printStackTrace();
+            throw new OAuthSystemException(ex);
         }
     }
 
-    public Client retrieveClient(String clientId) {
+    public Client getClient(String clientId, String secret) {
         try {
             Connection conn = getConnection();
             Statement stm = conn.createStatement();
-            ResultSet rs = stm.executeQuery(String.format("SELECT * FROM client WHERE clientid = \"%s\"", clientId));
+            String sql = String.format("SELECT * FROM client WHERE clientid = \'%s\' AND secret = \'%s\'", clientId, secret);
+            ResultSet rs = stm.executeQuery(sql);
             if(rs.next()) {
                 String name = rs.getString("name");
-                String secret = rs.getString("secret");
                 String type = rs.getString("type");
                 String url = rs.getString("url");
                 String redirectUrl = rs.getString("redirecturl");
@@ -76,6 +79,11 @@ public class OAuth2Db {
     }
 
     public String getPostgresConnectionJdbcString(boolean withDb) {
+        try {
+            Class.forName("org.postgresql.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         if (withDb)
             return String.format("jdbc:postgresql://%s:%s/%s", "localhost", "5432", "oauth2");
         else

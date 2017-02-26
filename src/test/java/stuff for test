@@ -1,0 +1,11 @@
+http://localhost:8080/register
+
+{
+    "type": "pull",
+    "client_name": "test-app",
+    "client_url": "localhost:8080",
+    "client_description": "example app",
+    "redirect_url": "localhost:8080/callback"
+}
+
+http://localhost:8080/token?redirect_uri=/redirect&grant_type=client_credentials&client_id=950435bf-e4eb-4c29-8807-75f8f79a7a12&client_secret=bece22d7-beec-4a6d-8da8-a87a74138f75

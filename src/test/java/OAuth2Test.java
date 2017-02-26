@@ -1,20 +1,69 @@
-import co.za.st.db.OAuth2Db;
-import co.za.st.dto.Client;
+import co.za.st.controller.STOAuth2RegistrationController;
+import co.za.st.controller.STOAuth2TokenController;
+import co.za.st.db.ClientDbMock;
+import co.za.st.springconfig.STWebMvcConfig;
+import co.za.st.client.Client;
+import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
+import org.json.JSONObject;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.util.ResourceUtils;
+import org.springframework.web.context.WebApplicationContext;
+
+import java.io.FileNotFoundException;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Created by StevenT on 2017/02/21.
  */
-
+@RunWith(SpringJUnit4ClassRunner.class)
+@WebAppConfiguration
+@ActiveProfiles(profiles = "dev")
+@ContextConfiguration(classes = {STWebMvcConfig.class})
 public class OAuth2Test {
+
+    @Autowired
+    private WebApplicationContext wac;
 
     private MockMvc mockMvc;
 
+    @Before
+    public void setup() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
+
+        try {
+            String createDbScript = ResourceUtils.getFile("classpath:scripts/create-oauth2-db.sql").toURI().toString();
+            String createTableScript = ResourceUtils.getFile("classpath:scripts/create-oauth2-db.sql").toURI().toString();
+
+            EmbeddedDatabase db = new EmbeddedDatabaseBuilder()
+                    .setType(EmbeddedDatabaseType.HSQL)
+                    .addScript(createDbScript)
+                    .addScript(createTableScript)
+                    .build();
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        }
+    }
+
     @Test
-    public void testClientPersistExpectClientRetrievedEqualToClientPersisted() {
-        OAuth2Db db = new OAuth2Db();
+    public void testClientPersistExpectClientRetrievedEqualToClientPersisted() throws OAuthSystemException {
+        ClientDbMock db = new ClientDbMock();
 
         String name = "name";
         String clientId = "clientid";
@@ -35,7 +84,7 @@ public class OAuth2Test {
 
         db.insertClient(client);
 
-        Client retrievedClient = db.retrieveClient(clientId);
+        Client retrievedClient = db.getClient(clientId, secret);
 
         Assert.assertEquals(name, retrievedClient.getName());
         Assert.assertEquals(clientId, retrievedClient.getClientId());
@@ -47,8 +96,39 @@ public class OAuth2Test {
 
     }
 
-//    @Test
-//    public void testPersist() {
-//        mockMvc.perform(get)
-//    }
+    @Test
+    public void testRegisterAndGetTokenExpectOk()  throws Exception{
+        String type = "pull";
+        String clientName = "test-app";
+        String url = "localhost:8080";
+        String description = "example app";
+        String redirectUrl = "localhost:8080/callback";
+        MvcResult result = this.mockMvc.perform(post("/register")
+                .header("Content-Type", "application/json")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(String.format("{\n" +
+                        "    \"type\": \"%s\",\n" +
+                        "    \"client_name\": \"%s\",\n" +
+                        "    \"client_url\": \"%s\",\n" +
+                        "    \"client_description\": \"%s\",\n" +
+                        "    \"redirect_url\": \"%s\"\n" +
+                        "}", type, clientName, url, description, redirectUrl)))
+                .andExpect(status().isOk())
+                .andReturn();
+        String responseBody = result.getResponse().getContentAsString();
+        JSONObject obj = new JSONObject(responseBody);
+        String clientId = obj.get("client_id").toString();
+        String secret = obj.get("client_secret").toString();
+
+        this.mockMvc.perform(post(String.format("/token?redirect_uri=/redirect&grant_type=client_credentials&code=known_authz_code&client_id=%s&client_secret=%s", clientId, secret))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+    }
 }
+
+

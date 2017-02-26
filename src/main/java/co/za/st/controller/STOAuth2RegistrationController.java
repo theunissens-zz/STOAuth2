@@ -1,13 +1,16 @@
 package co.za.st.controller;
 
-import co.za.st.db.OAuth2Db;
-import co.za.st.dto.Client;
+import co.za.st.client.iClient;
+import co.za.st.client.Client;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.OAuthResponse;
 import org.apache.oltu.oauth2.ext.dynamicreg.server.request.JSONHttpServletRequestWrapper;
 import org.apache.oltu.oauth2.ext.dynamicreg.server.request.OAuthServerRegistrationRequest;
 import org.apache.oltu.oauth2.ext.dynamicreg.server.response.OAuthServerRegistrationResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
@@ -19,11 +22,15 @@ import java.util.UUID;
  * Created by StevenT on 2017/02/21.
  */
 @Controller
+@RequestMapping(value = "/register")
 public class STOAuth2RegistrationController {
 
-    @RequestMapping(value = "/register", consumes = "application/json", produces = "application/json", method = RequestMethod.POST)
+    @Autowired
+    private iClient clientStorage;
+
+    @RequestMapping(consumes = "application/json", produces = "application/json", method = RequestMethod.POST)
     @ResponseBody
-    public OAuthResponse showIndex(HttpServletRequest request) throws OAuthSystemException {
+    public ResponseEntity register(HttpServletRequest request) throws OAuthSystemException {
         try {
             OAuthServerRegistrationRequest oauthRegRequest = new OAuthServerRegistrationRequest(new JSONHttpServletRequestWrapper(request));
             String type = oauthRegRequest.getType();
@@ -50,8 +57,7 @@ public class STOAuth2RegistrationController {
             client.setRedirectUrl(redirectUrl);
             client.setDescription(description);
 
-            OAuth2Db oAuth2Db = new OAuth2Db();
-            oAuth2Db.insertClient(client);
+            this.clientStorage.insertClient(client);
 
             OAuthResponse response = OAuthServerRegistrationResponse
                     .status(HttpServletResponse.SC_OK)
@@ -60,14 +66,14 @@ public class STOAuth2RegistrationController {
                     .setIssuedAt(date.toString())
                     .setExpiresIn(expires)
                     .buildJSONMessage();
-            return response;
+            return ResponseEntity.ok(response.getBody());
         } catch (OAuthProblemException ex) {
             ex.printStackTrace();
+            return new ResponseEntity("Something went wrong with you", HttpStatus.BAD_REQUEST);
         } catch (OAuthSystemException ex) {
             ex.printStackTrace();
+            return new ResponseEntity("Something went wrong with us", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        return OAuthServerRegistrationResponse.status(500).buildJSONMessage();
     }
 
     public String generateClientId() {
@@ -76,5 +82,9 @@ public class STOAuth2RegistrationController {
 
     public String generateClientSecret() {
         return UUID.randomUUID().toString();
+    }
+
+    public void setClientStorage(iClient clientStorage) {
+        this.clientStorage = clientStorage;
     }
 }

@@ -1,4 +1,4 @@
-package co.za.st.config;
+package co.za.st.springconfig;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -9,4 +9,5 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ComponentScan(basePackages = "co.za.st")
 public class STConfig {
+
 }
