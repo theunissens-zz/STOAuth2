@@ -1,8 +1,8 @@
 package co.za.st.controller;
 
-import co.za.st.handler.iClientHandler;
-import co.za.st.exceptions.ClientExistsException;
 import co.za.st.dto.Client;
+import co.za.st.exceptions.ClientExistsException;
+import co.za.st.handler.iClientHandler;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.OAuthResponse;
@@ -13,23 +13,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
-import java.util.UUID;
 
 /**
  * Created by StevenT on 2017/02/21.
  */
 @Controller
-@RequestMapping(value = "/register")
-public class STOAuth2RegistrationController {
+public class AuthRegistrationController {
 
     @Autowired
     private iClientHandler clientHandler;
 
-    @RequestMapping(consumes = "application/json", produces = "application/json", method = RequestMethod.POST)
+    @RequestMapping(value = "/register", consumes = "application/json", produces = "application/json", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity register(HttpServletRequest request) throws OAuthSystemException {
         try {

@@ -31,10 +31,6 @@ public class STOAuth2TestUnit {
     @Autowired
     private iTokenHandler tokenHandler;
 
-    @Before
-    public void setup() {
-    }
-
     @Test
     public void testClientSaveAndGetExpectSuccess() throws ClientExistsException, ClientNotFoundException {
         Client client = TestUtil.createTestClient();
@@ -69,13 +65,37 @@ public class STOAuth2TestUnit {
 
         this.clientHandler.saveClient(client);
 
-        Token token = tokenHandler.generateToken(client);
+        Token token = tokenHandler.generateToken(client, "someScope");
         Assert.assertNotNull(token);
     }
 
     @Test(expected=ClientNotFoundException.class)
     public void testTokenGenerationForClientNotSavedExpectFailure() throws ClientNotFoundException, ClientExistsException {
-        Token token = tokenHandler.generateToken(TestUtil.createTestClient());
+        Token token = tokenHandler.generateToken(TestUtil.createTestClient(), "someScope");
         Assert.assertNotNull(token);
+    }
+
+    @Test
+    public void testValidForClientExpectSuccess() throws ClientNotFoundException, ClientExistsException {
+        Client client = TestUtil.createTestClient();
+
+        this.clientHandler.saveClient(client);
+
+        Token token = tokenHandler.generateToken(client, "someScope");
+
+        Assert.assertTrue(tokenHandler.validateToken(token.getAccessToken()));
+    }
+
+    @Test
+    public void testTokenExpirationForClientExpectFailure() throws ClientNotFoundException, ClientExistsException, InterruptedException {
+        Client client = TestUtil.createTestClient();
+
+        this.clientHandler.saveClient(client);
+
+        Token token = tokenHandler.generateToken(client, "someScope");
+
+        Thread.sleep(token.getExpiresIn() + 1000);
+
+        Assert.assertFalse(tokenHandler.validateToken(token.getAccessToken()));
     }
 }

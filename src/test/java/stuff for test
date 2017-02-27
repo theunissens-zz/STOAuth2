@@ -9,3 +9,10 @@ http://localhost:8080/register
 }
 
 http://localhost:8080/token?redirect_uri=/redirect&grant_type=client_credentials&client_id=950435bf-e4eb-4c29-8807-75f8f79a7a12&client_secret=bece22d7-beec-4a6d-8da8-a87a74138f75
+
+NOTES:
+
+Token stuff
+1. soon-to-be-an-RFC JSON Web Token, or  JWT (https://www.quora.com/In-OAuth-2-0-how-do-resource-servers-assert-a-token-issued-by-an-authorization-server)
+2. "So in this deployment, the RS parses the token, checks the signature, finds the issuer of the token, and introspects the token with the AS associated with that issuer URL. We've found that this works really well."
+3. Scopes should maybe be in the token

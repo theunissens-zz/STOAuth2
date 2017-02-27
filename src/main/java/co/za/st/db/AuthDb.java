@@ -2,7 +2,6 @@ package co.za.st.db;
 
 import co.za.st.dto.Client;
 import co.za.st.dto.Token;
-import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 
 import java.sql.*;
 import java.util.Properties;
@@ -63,11 +62,19 @@ public class AuthDb implements iAuthDb {
     }
 
     public void insertToken(Client client, Token token) {
-
+        // NOTE! hash the token when storing in db
     }
 
     public Token getToken(String clientId) {
         return null;
+    }
+
+    public void purgeTokens() {
+
+    }
+
+    public boolean tokenExists(String token) {
+        return false;
     }
 
     public boolean clientExists(String clientId) {

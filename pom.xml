@@ -68,6 +68,16 @@
             <artifactId>org.apache.oltu.oauth2.dynamicreg.server</artifactId>
             <version>${oltu.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.oltu.oauth2</groupId>
+            <artifactId>org.apache.oltu.oauth2.jwt</artifactId>
+            <version>${oltu.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.oltu.oauth2</groupId>
+            <artifactId>org.apache.oltu.oauth2.resourceserver</artifactId>
+            <version>${oltu.version}</version>
+        </dependency>
         <!-- json -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

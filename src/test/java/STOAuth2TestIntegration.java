@@ -51,7 +51,7 @@ public class STOAuth2TestIntegration {
 
 
     @Test
-    public void testRegisterAndGetTokenExpectOk()  throws Exception{
+    public void testRegisterAndGetTokenAndAuthTokenExpectOk()  throws Exception{
         String type = "pull";
         String clientName = "test-app";
         String url = "localhost:8080";
@@ -75,10 +75,20 @@ public class STOAuth2TestIntegration {
         String clientId = obj.get("client_id").toString();
         String secret = obj.get("client_secret").toString();
 
-        this.mockMvc.perform(post(String.format("/token?redirect_uri=/redirect&grant_type=client_credentials&code=known_authz_code&client_id=%s&client_secret=%s", clientId, secret))
+        result = this.mockMvc.perform(post(String.format("/token?redirect_uri=/redirect&grant_type=client_credentials&code=known_authz_code&client_id=%s&client_secret=%s", clientId, secret))
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        responseBody = result.getResponse().getContentAsString();
+        obj = new JSONObject(responseBody);
+        String token = obj.get("access_token").toString();
+
+        this.mockMvc.perform(get(String.format("/auth_resource?access_token=%s", token))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .accept(MediaType.TEXT_HTML))
                 .andExpect(status().isOk())
                 .andReturn();
 

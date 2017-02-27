@@ -2,16 +2,20 @@ package co.za.st.controller;
 
 import co.za.st.dto.Client;
 import co.za.st.dto.Token;
-import co.za.st.handler.TokenHandler;
 import co.za.st.handler.iClientHandler;
 import co.za.st.exceptions.ClientNotFoundException;
 import co.za.st.handler.iTokenHandler;
+import org.apache.oltu.oauth2.as.issuer.MD5Generator;
+import org.apache.oltu.oauth2.as.issuer.OAuthIssuer;
+import org.apache.oltu.oauth2.as.issuer.OAuthIssuerImpl;
 import org.apache.oltu.oauth2.as.request.OAuthTokenRequest;
 import org.apache.oltu.oauth2.as.response.OAuthASResponse;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.OAuthResponse;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
+import org.apache.oltu.oauth2.common.token.BasicOAuthToken;
+import org.apache.oltu.oauth2.common.token.OAuthToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,13 +26,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.UUID;
+import java.util.Set;
 
 /**
  * Created by stevy on 2017/02/25.
  */
 @Controller
-public class STOAuth2TokenController {
+public class AuthTokenController {
 
     // For now, we will accept the clientid and handler secret in url0 as params, but we really
     // want to base64 encode the clientid and secret like this (clientid:clientsecret) in the future
@@ -47,16 +51,21 @@ public class STOAuth2TokenController {
             if (tokenRequest.getGrantType().equalsIgnoreCase(GrantType.CLIENT_CREDENTIALS.toString())) {
                 String clientid = tokenRequest.getClientId();
                 String secret = tokenRequest.getClientSecret();
+                Set<String> scopes = tokenRequest.getScopes();
 
                 try {
                     Client client = clientHandler.getClient(clientid, secret);
 
-                    Token token = tokenHandler.generateToken(client);
+                    String scope = null;
+                    if (scopes.size() > 0) {
+                        scope = scopes.iterator().next();
+                    }
+                    Token token = tokenHandler.generateToken(client, scope);
 
                     OAuthResponse response = OAuthASResponse
                             .tokenResponse(HttpServletResponse.SC_OK)
                             .setAccessToken(token.getAccessToken())
-                            .setExpiresIn(token.getExpires())
+                            .setExpiresIn(token.getExpiresIn().toString())
                             .buildJSONMessage();
                     return ResponseEntity.ok(response.getBody());
                 } catch (ClientNotFoundException ex) {
