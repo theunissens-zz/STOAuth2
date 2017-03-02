@@ -2,6 +2,7 @@ package co.za.st.db;
 
 import co.za.st.dto.Client;
 import co.za.st.dto.Token;
+import com.zaxxer.hikari.HikariDataSource;
 
 import java.util.HashMap;
 
@@ -10,8 +11,30 @@ import java.util.HashMap;
  */
 public class AuthDbMock implements iAuthDb {
 
-    private HashMap<String, Client> clients = new HashMap<String, Client>();
-    private HashMap<String, Token> clientTokens = new HashMap<String, Token>();
+    private HashMap<String, Client> clients;
+    private HashMap<String, Token> clientTokens;
+
+    public void setup() {
+        createAuthDb();
+        createClientTable();
+        createTokenTable();
+    }
+
+    public void createAuthDb() {
+    }
+
+    public void createClientTable() {
+        clients = new HashMap<String, Client>();
+    }
+
+    public void createTokenTable() {
+        clientTokens = new HashMap<String, Token>();
+    }
+
+    public void dropDb() {
+        clients = null;
+        clientTokens = null;
+    }
 
     public void insertClient(Client client) {
         clients.put(client.getClientId(), client);
@@ -37,6 +60,10 @@ public class AuthDbMock implements iAuthDb {
 
     public Token getToken(String clientId) {
         return clientTokens.get(clientId);
+    }
+
+    public void deleteTokens(String[] tokens) {
+
     }
 
     public void purgeTokens() {

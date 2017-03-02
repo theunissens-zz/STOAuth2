@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Profile;
  * Created by stevy on 2017/02/25.
  */
 @Configuration
-@Profile("production")
+@Profile({"production", "integration"})
 @ComponentScan(basePackages = "co.za.st")
 public class AuthDbConfig {
 

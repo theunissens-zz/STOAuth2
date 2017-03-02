@@ -14,4 +14,6 @@ public interface iTokenHandler {
     Token generateToken(Client client, String scopes) throws ClientNotFoundException;
 
     boolean validateToken(String accessToken);
+
+    void purgeTokens();
 }

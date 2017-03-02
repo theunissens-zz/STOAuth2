@@ -38,8 +38,12 @@ public class TokenHandler implements iTokenHandler {
     }
 
     public boolean validateToken(String token) {
-        authDb.purgeTokens();
+        this.purgeTokens();
         return authDb.tokenExists(token);
+    }
+
+    public void purgeTokens() {
+        authDb.purgeTokens();
     }
 
     private String generateAccessToken() {
