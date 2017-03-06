@@ -23,7 +23,7 @@ public class ClientHandler implements iClientHandler {
     }
 
     public Client saveClient(Client client) throws ClientExistsException {
-        if (this.clientExists(client.getClientId())) {
+        if (this.clientExists(client.getName())) {
             throw new ClientExistsException(client.getName());
         } else {
             client.setClientId(generateClientId());
@@ -33,8 +33,8 @@ public class ClientHandler implements iClientHandler {
         }
     }
 
-    public boolean clientExists(String clientId) {
-        return clientDb.clientExists(clientId);
+    public boolean clientExists(String clientName) {
+        return clientDb.clientExists(clientName);
     }
 
     public Client getClient(String clientId, String clientSecret) throws ClientNotFoundException {

@@ -21,7 +21,7 @@ public interface iAuthDb {
 
     void insertClient(Client client);
 
-    boolean clientExists(String clientId);
+    boolean clientExists(String clientName);
 
     Client getClient(String clientId, String clientSecret);
 

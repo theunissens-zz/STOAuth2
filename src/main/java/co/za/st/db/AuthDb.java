@@ -155,13 +155,13 @@ public class AuthDb implements iAuthDb {
         return false;
     }
 
-    public boolean clientExists(String clientId) {
+    public boolean clientExists(String clientName) {
         Connection conn;
         Statement stm;
         try {
             conn = this.dbPool.getConnection();
             stm = conn.createStatement();
-            String sql = String.format("SELECT * FROM client WHERE clientid = \'%s\'", clientId);
+            String sql = String.format("SELECT * FROM client WHERE name = \'%s\'", clientName);
 
             ResultSet rs = stm.executeQuery(sql);
             if(rs.next()) {

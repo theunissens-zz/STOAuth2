@@ -8,7 +8,7 @@ import co.za.st.exceptions.ClientNotFoundException;
  * Created by stevy on 2017/02/26.
  */
 public interface iClientHandler {
-    boolean clientExists(String clientId) throws ClientNotFoundException;
+    boolean clientExists(String clientName) throws ClientNotFoundException;
 
     Client saveClient(Client client) throws ClientExistsException;
 

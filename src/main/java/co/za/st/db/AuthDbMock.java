@@ -40,11 +40,15 @@ public class AuthDbMock implements iAuthDb {
         clients.put(client.getClientId(), client);
     }
 
-    public boolean clientExists(String clientId) {
-        if (clients.get(clientId) != null)
-            return true;
-        else
-            return false;
+    public boolean clientExists(String clientName) {
+        Object[] keys = clients.keySet().toArray();
+        for (int i = 0; i < keys.length; i++) {
+            Client client = clients.get(keys[i]);
+            if (client.getName().equals(clientName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Client getClient(String clientId, String clientSecret) {

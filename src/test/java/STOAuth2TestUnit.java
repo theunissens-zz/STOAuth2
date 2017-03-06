@@ -7,7 +7,6 @@ import co.za.st.handler.iClientHandler;
 import co.za.st.handler.iTokenHandler;
 import co.za.st.springconfig.STWebMvcConfig;
 import org.json.JSONObject;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,11 +56,6 @@ public class STOAuth2TestUnit {
         db.setup();
     }
 
-    @After
-    public void teardown() {
-        db.dropDb();
-    }
-
     @Test
     public void testClientSaveAndGetExpectSuccess() throws ClientExistsException, ClientNotFoundException {
         Client client = TestUtil.createTestClient();
@@ -79,10 +73,8 @@ public class STOAuth2TestUnit {
 
     @Test(expected=ClientExistsException.class)
     public void testClientSaveWithExistingClientAndExpectFailure() throws ClientExistsException, ClientNotFoundException {
-        Client client = TestUtil.createTestClient();
-
-        this.clientHandler.saveClient(client);
-        this.clientHandler.saveClient(client);
+        this.clientHandler.saveClient(TestUtil.createTestClient());
+        this.clientHandler.saveClient(TestUtil.createTestClient());
     }
 
     @Test(expected=ClientNotFoundException.class)
